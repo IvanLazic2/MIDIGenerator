@@ -1,0 +1,15 @@
+-f https://download.pytorch.org/whl/cpu
+equinox==0.11.2
+git+https://github.com/Natooz/MidiTok.git@89c4678673925d35d4c3ee18152a78349212d3d1
+
+jax==0.4.31
+scipy==1.14.0
+
+loguru==0.7.2
+optax==0.1.7
+orbax-checkpoint==0.4.2
+
+torch==2.4.0
+wandb==0.16.0
+
+customtkinter
