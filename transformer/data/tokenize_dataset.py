@@ -18,6 +18,9 @@ def main(args):
     tokenizer = get_tokenizer(tokenizer_config)
 
     midi_paths = list(Path(args.midis_dir).glob("**/*.mid"))
+    if len(midi_paths) == 0:
+        midi_paths = list(Path(args.midis_dir).glob("**/*.midi"))
+
     assert len(midi_paths)
 
     data_augmentation_offsets = [2, 1, 1]

@@ -1,5 +1,6 @@
 /datasets
-/_env
+/.env
+/_env*
 /**/__pycache__
 /transformer/*tokenizer*
 /transformer/*dataset*

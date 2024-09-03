@@ -26,7 +26,7 @@ class ScreenGenerate(Screen):
         options_frame = ctk.CTkFrame(self.frame)
         options_frame.grid(row=0, column=0, sticky="nw", padx=(20, 0), pady=0)
 
-        self.checkpoint_directory_browser = CheckpointBrowser(options_frame, default="/home/ivanubuntu/Projects/MusicGenerator/transformer/checkpoints/2024-08-21_15-07-26", default_checkpoint="checkpoint-005.eqx")
+        self.checkpoint_directory_browser = CheckpointBrowser(options_frame, default="/home/ivanubuntu/Projects/MIDIGenerator/transformer/checkpoints/2024-08-21_15-07-26", default_checkpoint="checkpoint-005.eqx")
         self.checkpoint_directory_browser.grid(row=0, column=0, sticky="w", padx=20, pady=(20, 20))
 
         self.prompt_mode_dropdown = MidiPromptDropdown(options_frame, default="unconditional", default_midi_path="")
@@ -90,15 +90,15 @@ class ScreenTokenize(Screen):
         options_frame.grid(row=0, column=0, sticky="nw", padx=(20, 0), pady=0)
 
         # folder selection -> Dataset directory with midi files
-        self.dataset_directory_browser = Browser(options_frame, label="MIDI Dataset Directory", default="/home/ivanubuntu/Projects/MusicGenerator/datasets/GiantMIDI-PIano_micro/midis", browser_type="directory")
+        self.dataset_directory_browser = Browser(options_frame, label="MIDI Dataset Directory", default="/home/ivanubuntu/Projects/MIDIGenerator/datasets/GiantMIDI-PIano_micro/midis", browser_type="directory")
         self.dataset_directory_browser.grid(row=0, column=0, sticky="w", padx=20, pady=(20, 20))
 
         # output -> Tokenized dataset directory
-        self.output_directory_browser = Browser(options_frame, label="Tokenized Dataset Directory", default="/home/ivanubuntu/Projects/MusicGenerator/transformer/dataset_tokenized", browser_type="directory")
+        self.output_directory_browser = Browser(options_frame, label="Tokenized Dataset Directory", default="/home/ivanubuntu/Projects/MIDIGenerator/transformer/dataset_tokenized", browser_type="directory")
         self.output_directory_browser.grid(row=1, column=0, sticky="w", padx=20, pady=(0, 20))
 
         # output tokenizer.json -> Tokenizer json file
-        self.tokenizer_json_browser = Browser(options_frame, label="tokenizer.json Directory", default="/home/ivanubuntu/Projects/MusicGenerator/transformer", browser_type="directory")
+        self.tokenizer_json_browser = Browser(options_frame, label="tokenizer.json Directory", default="/home/ivanubuntu/Projects/MIDIGenerator/transformer", browser_type="directory")
         self.tokenizer_json_browser.grid(row=2, column=0, sticky="w", padx=20, pady=(0, 20))
 
         console_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
@@ -140,7 +140,7 @@ class ScreenTrain(Screen):
         self.epochs_input.grid(row=0, column=0, sticky="w", padx=20, pady=(20, 20))
 
         # folder selection -> Dataset directory
-        self.dataset_directory_browser = Browser(options_frame, label="Tokenized Dataset", default="/home/ivanubuntu/Projects/MusicGenerator/transformer/dataset_tokenized", browser_type="directory")
+        self.dataset_directory_browser = Browser(options_frame, label="Tokenized Dataset", default="/home/ivanubuntu/Projects/MIDIGenerator/transformer/dataset_tokenized", browser_type="directory")
         self.dataset_directory_browser.grid(row=1, column=0, sticky="w", padx=20, pady=(0, 20)) 
 
         console_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
