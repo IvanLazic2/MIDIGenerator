@@ -226,7 +226,6 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
         "--use_seed",
-        type=bool,
         action='store_false',
         help="Use a fixed seed for PRNG key initialisation.",
     )

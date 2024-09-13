@@ -3,6 +3,7 @@ import pandas as pd
 import pretty_midi
 import tensorflow as tf
 
+from model import MIDIGeneratorModel
 from utils import midi_to_notes, key_order, seq_length, vocab_size
 
 def predict_next_note(
@@ -60,7 +61,9 @@ def generate(model, raw_notes):
         generated_notes, columns=(*key_order, 'start', 'end'))
 
 def main():
-    model = tf.keras.models.load_model('checkpoints/checkpoint_50.weights.h5')
+    model = MIDIGeneratorModel()
+    model.compile()
+    model.load_weights('checkpoints/checkpoint_50.weights.h5')
 
     prompt_file = 'prompts/test1.mid'
     #prompt_file_pm = pretty_midi.PrettyMIDI(prompt_file)

@@ -107,19 +107,8 @@ def main():
                 .cache()
                 .prefetch(tf.data.experimental.AUTOTUNE))
 
-    input_shape = (seq_length, 3)
-
-
-    inputs = tf.keras.Input(input_shape)
-    x = tf.keras.layers.LSTM(128)(inputs)
-
-    outputs = {
-      'pitch': tf.keras.layers.Dense(128, name='pitch')(x),
-      'step': tf.keras.layers.Dense(1, name='step')(x),
-      'duration': tf.keras.layers.Dense(1, name='duration')(x),
-    }
-
-    model = MIDIGeneratorModel(inputs=inputs, outputs=outputs)
+    
+    model = MIDIGeneratorModel()
 
     model.compile()
 
