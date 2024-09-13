@@ -35,7 +35,7 @@ from loguru import logger
 
 import wandb
 from data import generate_splits, get_dataloader, get_dataset
-from model import TchAIkovskyModel
+from model import MIDIGeneratorModel
 from utils import seed_others
 
 
@@ -130,7 +130,7 @@ def main(args):
 
     model_key, key = jax.random.split(key)
     logger.info("Initialising model.")
-    model = TchAIkovskyModel(
+    model = MIDIGeneratorModel(
         dim=args.dim,
         num_heads=args.heads,
         num_layers=args.num_layers,

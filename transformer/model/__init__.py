@@ -1,1 +1,1 @@
-from .model import TchAIkovskyModel
+from .model import MIDIGeneratorModel

@@ -26,7 +26,7 @@ class ScreenGenerate(Screen):
         options_frame = ctk.CTkFrame(self.frame)
         options_frame.grid(row=0, column=0, sticky="nw", padx=(20, 0), pady=0)
 
-        self.checkpoint_directory_browser = CheckpointBrowser(options_frame, default="/home/ivanubuntu/Projects/MIDIGenerator/transformer/checkpoints/2024-08-21_15-07-26", default_checkpoint="checkpoint-005.eqx")
+        self.checkpoint_directory_browser = CheckpointBrowser(options_frame, default="/home/ivanubuntu/Projects/MIDIGenerator/transformer/checkpoints/old checkpoints", default_checkpoint="checkpoint-005.eqx")
         self.checkpoint_directory_browser.grid(row=0, column=0, sticky="w", padx=20, pady=(20, 20))
 
         self.prompt_mode_dropdown = MidiPromptDropdown(options_frame, default="unconditional", default_midi_path="")

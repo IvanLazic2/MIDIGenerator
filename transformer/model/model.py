@@ -89,7 +89,7 @@ class Decoder(eqx.Module):
         return x
 
 
-class TchAIkovskyModel(eqx.Module):
+class MIDIGeneratorModel(eqx.Module):
     id_embeddings: eqx.Module
     pos_embeddings: eqx.Module
     decoder: eqx.Module
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     x = jax.random.randint(x_key, (2, 8), 0, 10)
     position_ids = jnp.expand_dims(jnp.arange(8, dtype=int), axis=0).repeat(2, axis=0)
     mask = jnp.ones((2, 8, 8), dtype=bool)
-    model = TchAIkovskyModel(model_key, 512, 8, 4, 10, 8, head_dim=64, dropout=0.1)
+    model = MIDIGeneratorModel(model_key, 512, 8, 4, 10, 8, head_dim=64, dropout=0.1)
     model = jax.vmap(model, (0, 0, 0, None))
 
     y = model(x, position_ids, mask, key)

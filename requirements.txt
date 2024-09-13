@@ -13,3 +13,4 @@ torch==2.4.0
 wandb==0.16.0
 
 customtkinter
+numpy=2.1.0

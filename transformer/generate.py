@@ -15,11 +15,12 @@ from loguru import logger
 from miditoolkit import MidiFile
 
 from data.tokenizer import get_pretrained_tokenizer
-from model import TchAIkovskyModel
+from model import MIDIGeneratorModel
 from utils import seed_others
 
 import os
 import sys
+import random
 
 def load_config(config_path):
     with open(config_path, mode="r") as f:
@@ -97,12 +98,9 @@ def generate_loop(
     return np.array(output)
 
 
-# tokenizes initial prompt
 def tokenize_prompt(midi, tokenizer):
     return tokenizer(midi)
 
-
-# loads prompt MIDI file
 def file_prompt(path):
     midi = MidiFile(path)
     return midi
@@ -112,9 +110,17 @@ def main(args):
     logger.info(os.getcwd())
 
     logger.info("Beginning generation script.")
-    key = jax.random.PRNGKey(args.seed)
-    logger.info(f"Using PRNG key {args.seed}")
-    seed_others(args.seed)
+
+    seed = 0
+
+    if args.use_seed:
+        seed = args.seed
+    else:
+        seed = random.randint(0, 0xFFFFFFFF)
+
+    key = jax.random.PRNGKey(seed)
+    logger.info(f"Using PRNG key {seed}")
+    seed_others(seed)
 
     logger.info("Loading config.")
     config = load_config(Path(args.checkpoint_directory) / "config.json")
@@ -123,7 +129,7 @@ def main(args):
     tokenizer = get_pretrained_tokenizer(args.tokenizer)
 
     logger.info("Initialising model.")
-    model = TchAIkovskyModel(
+    model = MIDIGeneratorModel(
         dim=config.dim,
         num_heads=config.heads,
         num_layers=config.num_layers,
@@ -131,7 +137,7 @@ def main(args):
         max_positions=config.max_sequence_length,
         head_dim=config.head_dim,
         dropout=config.dropout,
-        key=key,  # don't bother splitting here, as we will load from checkpoint anyway
+        key=key,
         dtype=jnp.bfloat16 if config.use_bf16 else jnp.float32,
     )
 
@@ -206,8 +212,10 @@ def main(args):
 
 
 def validate_args(args):
-    #if args.config is None:
-    #    raise ValueError("Must specify --config!")
+    if args.checkpoint_directory is None:
+        raise ValueError("Must specify --checkpoint_directory!")
+    if args.checkpoint is None:
+        raise ValueError("Must specify --checkpoint!")
     if args.prompt_mode not in ["unconditional", "file"]:
         raise ValueError(f"Invalid prompt mode 'args.prompt_mode'!")
     if args.prompt_mode == "file" and args.prompt_midi is None:
@@ -216,6 +224,12 @@ def validate_args(args):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument(
+        "--use_seed",
+        action=bool,
+        default=False,
+        help="Use a fixed seed for PRNG key initialisation.",
+    )
     parser.add_argument(
         "--seed",
         type=int,
