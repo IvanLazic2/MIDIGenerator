@@ -1,41 +1,23 @@
-import collections
 import datetime
 import glob
 import numpy as np
 import pathlib
 import pandas as pd
-import pretty_midi
 import tensorflow as tf
-
 
 from typing import Optional
 
-data_dir = pathlib.Path('../datasets/Maestro v3/extracted_files_maestro_single')
-key_order = ['pitch', 'step', 'duration']
+from model import MIDIGeneratorModel
+from utils import midi_to_notes, key_order, seq_length, vocab_size
 
-def midi_to_notes(midi_file: str) -> pd.DataFrame:
-    pm = pretty_midi.PrettyMIDI(midi_file)
-    instrument = pm.instruments[0]
-    notes = collections.defaultdict(list)
+data_dir = pathlib.Path('/home/ivanubuntu/Projects/MIDIGenerator/datasets/Maestro v3/extracted_files_maestro_single')
 
-    # Sort the notes by start time
-    sorted_notes = sorted(instrument.notes, key=lambda note: note.start)
-    prev_start = sorted_notes[0].start
-
-    for note in sorted_notes:
-        start = note.start
-        end = note.end
-        notes['pitch'].append(note.pitch)
-        notes['start'].append(start)
-        notes['end'].append(end)
-        notes['step'].append(start - prev_start)
-        notes['duration'].append(end - start)
-        prev_start = start
-
-    return pd.DataFrame({name: np.array(value) for name, value in notes.items()})
 
 def create_dataset():
-    filenames = glob.glob(str(data_dir/'**/*.mid*'))
+    filenames = glob.glob(str(data_dir/'*.mid*'))
+    if len(filenames) == 0:
+        filenames = glob.glob(str(data_dir/'*.midi*'))
+
     print('Number of files:', len(filenames))
 
     num_files = 5
@@ -84,15 +66,15 @@ def create_sequences(
 
     return sequences.map(split_labels, num_parallel_calls=tf.data.AUTOTUNE)
 
-def mse_with_positive_pressure(y_true: tf.Tensor, y_pred: tf.Tensor):
-    mse = (y_true - y_pred) ** 2
-    positive_pressure = 10 * tf.maximum(-y_pred, 0.0)
-    return tf.reduce_mean(mse + positive_pressure)
+
 
 def train(model, train_ds):
+    checkpoint_dir = ''#datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    #pathlib.Path('./checkpoints/' + checkpoint_dir).mkdir(parents=True, exist_ok=True)
+
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
-            filepath='./checkpoints/checkpoint_{epoch}',
+            filepath='./checkpoints/' + checkpoint_dir + 'checkpoint_{epoch}.weights.h5',
             save_weights_only=True),
         tf.keras.callbacks.EarlyStopping(
             monitor='loss',
@@ -112,8 +94,8 @@ def train(model, train_ds):
 def main():
     notes_ds, n_notes = create_dataset()
 
-    seq_length = 25
-    vocab_size = 128
+    
+    
     seq_ds = create_sequences(notes_ds, seq_length, vocab_size)
     seq_ds.element_spec
 
@@ -126,7 +108,7 @@ def main():
                 .prefetch(tf.data.experimental.AUTOTUNE))
 
     input_shape = (seq_length, 3)
-    learning_rate = 0.005
+
 
     inputs = tf.keras.Input(input_shape)
     x = tf.keras.layers.LSTM(128)(inputs)
@@ -137,26 +119,9 @@ def main():
       'duration': tf.keras.layers.Dense(1, name='duration')(x),
     }
 
-    model = tf.keras.Model(inputs, outputs)
+    model = MIDIGeneratorModel(inputs=inputs, outputs=outputs)
 
-    loss = {
-          'pitch': tf.keras.losses.SparseCategoricalCrossentropy(
-              from_logits=True),
-          'step': mse_with_positive_pressure,
-          'duration': mse_with_positive_pressure,
-    }
-
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-
-    model.compile(
-        loss=loss,
-        loss_weights={
-            'pitch': 0.05,
-            'step': 1.0,
-            'duration':1.0,
-        },
-        optimizer=optimizer,
-    )
+    model.compile()
 
     model.evaluate(train_ds, return_dict=True)
 
@@ -164,4 +129,5 @@ def main():
 
     print('Training complete')
 
-
+if __name__ == '__main__':
+    main()

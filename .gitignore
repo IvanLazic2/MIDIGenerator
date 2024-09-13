@@ -2,7 +2,8 @@
 /**/.env
 /**/_env*
 /**/__pycache__
+/**/*checkpoints*
 /transformer/*tokenizer*
 /transformer/*dataset*
-/transformer/*checkpoints*
+
 /transformer/generated_midis
