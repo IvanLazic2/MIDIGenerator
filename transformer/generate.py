@@ -118,6 +118,8 @@ def main(args):
     else:
         seed = random.randint(0, 0xFFFFFFFF)
 
+    seed = random.randint(0, 0xFFFFFFFF)
+
     key = jax.random.PRNGKey(seed)
     logger.info(f"Using PRNG key {seed}")
     seed_others(seed)
