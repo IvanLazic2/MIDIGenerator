@@ -1,16 +1,17 @@
 import datetime
 import glob
 import numpy as np
-import pathlib
+
 import pandas as pd
 import tensorflow as tf
 
 from typing import Optional
 
 from model import MIDIGeneratorModel
-from utils import midi_to_notes, key_order, seq_length, vocab_size
+from utils import midi_to_notes, key_order, seq_length, vocab_size, data_dir
 
-data_dir = pathlib.Path('/home/ivanubuntu/Projects/MIDIGenerator/datasets/Maestro v3/extracted_files_maestro_single')
+from generate import main as generate
+
 
 
 def create_dataset():
@@ -83,7 +84,7 @@ def train(model, train_ds):
             restore_best_weights=True),
     ]
 
-    epochs = 50
+    epochs = 22
 
     history = model.fit(
         train_ds,
@@ -107,16 +108,29 @@ def main():
                 .cache()
                 .prefetch(tf.data.experimental.AUTOTUNE))
 
-    
-    model = MIDIGeneratorModel()
+    input_shape = (seq_length, 3)
+    inputs = tf.keras.Input(input_shape)
+    x = tf.keras.layers.LSTM(128)(inputs)
 
-    model.compile()
+    outputs = {
+        'pitch': tf.keras.layers.Dense(128, name='pitch')(x),
+        'step': tf.keras.layers.Dense(1, name='step')(x),
+        'duration': tf.keras.layers.Dense(1, name='duration')(x),
+    }
+
+    model = MIDIGeneratorModel(inputs = inputs, outputs = outputs)
+
+    model.compile_model()
 
     model.evaluate(train_ds, return_dict=True)
 
     train(model, train_ds)
 
+    model.save('model.keras')
+
     print('Training complete')
+
+    #generate(model)
 
 if __name__ == '__main__':
     main()

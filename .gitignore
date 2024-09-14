@@ -6,4 +6,4 @@
 /transformer/*tokenizer*
 /transformer/*dataset*
 
-/transformer/generated_midis
+/**/generated_midis

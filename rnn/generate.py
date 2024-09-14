@@ -1,10 +1,14 @@
+import datetime
+import glob
 import numpy as np
 import pandas as pd
 import pretty_midi
+import keras
 import tensorflow as tf
+from tensorflow.keras.utils import custom_object_scope
 
 from model import MIDIGeneratorModel
-from utils import midi_to_notes, key_order, seq_length, vocab_size
+from utils import midi_to_notes, notes_to_midi, key_order, seq_length, vocab_size, data_dir
 
 def predict_next_note(
       notes: np.ndarray, 
@@ -48,28 +52,52 @@ def generate(model, raw_notes):
     generated_notes = []
     prev_start = 0
     for _ in range(num_predictions):
-      pitch, step, duration = predict_next_note(input_notes, model, temperature)
-      start = prev_start + step
-      end = start + duration
-      input_note = (pitch, step, duration)
-      generated_notes.append((*input_note, start, end))
-      input_notes = np.delete(input_notes, 0, axis=0)
-      input_notes = np.append(input_notes, np.expand_dims(input_note, 0), axis=0)
-      prev_start = start
+        pitch, step, duration = predict_next_note(input_notes, model, temperature)
+        start = prev_start + step
+        end = start + duration
+        input_note = (pitch, step, duration)
+        generated_notes.append((*input_note, start, end))
+        input_notes = np.delete(input_notes, 0, axis=0)
+        input_notes = np.append(input_notes, np.expand_dims(input_note, 0), axis=0)
+        prev_start = start
 
-    generated_notes = pd.DataFrame(
-        generated_notes, columns=(*key_order, 'start', 'end'))
+    generated_notes = pd.DataFrame(generated_notes, columns=(*key_order, 'start', 'end'))
+    
+    return generated_notes
 
-def main():
-    model = MIDIGeneratorModel()
-    model.compile()
-    model.load_weights('checkpoints/checkpoint_50.weights.h5')
+def main(model):
+    if model is None:
+        #model = MIDIGeneratorModel()
+        #model.compile()
+        #model.load_weights('checkpoints/checkpoint_50.weights.h5')
 
-    prompt_file = 'prompts/test1.mid'
+        with custom_object_scope({'MIDIGeneratorModel': MIDIGeneratorModel}):
+            model = keras.models.load_model('model.keras')
+        
+    #prompt_file = 'prompts/test1.mid'
     #prompt_file_pm = pretty_midi.PrettyMIDI(prompt_file)
-    raw_notes = midi_to_notes(prompt_file)
+    #raw_notes = midi_to_notes(prompt_file)
 
-    generate(model, raw_notes)
+    filenames = glob.glob(str(data_dir/'*.mid*'))
+
+    sample_file = filenames[1]
+    # save the sample file to midi file also
+    sample_pm = pretty_midi.PrettyMIDI(sample_file)
+    sample_out_file = f"current_sample_midi.mid"
+    sample_pm.write(sample_out_file)
+
+    pm = pretty_midi.PrettyMIDI(sample_file)
+    instrument = pm.instruments[0]
+    instrument_name = pretty_midi.program_to_instrument_name(instrument.program)
+
+    raw_notes = midi_to_notes(sample_file)
+
+    generated_notes = generate(model, raw_notes)
+
+    out_file = f"generated_midis/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mid"
+    out_pm = notes_to_midi(generated_notes, out_file = out_file, instrument_name = instrument_name)
+    out_pm.write(out_file)
+
 
 if __name__ == '__main__':
-    main()
+    main(None)

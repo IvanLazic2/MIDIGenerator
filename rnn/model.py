@@ -1,33 +1,29 @@
+import keras
 import tensorflow as tf
+from tensorflow.keras.saving import register_keras_serializable
+
 from utils import midi_to_notes, key_order, seq_length, vocab_size
 
 learning_rate = 0.005
 
+@register_keras_serializable(package='Custom', name='mse_with_positive_pressure')
+def mse_with_positive_pressure(y_true: tf.Tensor, y_pred: tf.Tensor):
+    mse = (y_true - y_pred) ** 2
+    positive_pressure = 10 * tf.maximum(-y_pred, 0.0)
+    return tf.reduce_mean(mse + positive_pressure)
+
+@register_keras_serializable(package='Custom', name='MIDIGeneratorModel')
 class MIDIGeneratorModel(tf.keras.Model):
-    def __init__(self):
-        input_shape = (seq_length, 3)
-        inputs = tf.keras.Input(input_shape)
-        x = tf.keras.layers.LSTM(128)(inputs)
+    def __init__(self, **kwargs):
+        
+        super().__init__(**kwargs)
 
-        outputs = {
-            'pitch': tf.keras.layers.Dense(128, name='pitch')(x),
-            'step': tf.keras.layers.Dense(1, name='step')(x),
-            'duration': tf.keras.layers.Dense(1, name='duration')(x),
-        }
-
-        super().__init__(inputs, outputs)
-
-    def mse_with_positive_pressure(self, y_true: tf.Tensor, y_pred: tf.Tensor):
-        mse = (y_true - y_pred) ** 2
-        positive_pressure = 10 * tf.maximum(-y_pred, 0.0)
-        return tf.reduce_mean(mse + positive_pressure)
-    
-    def compile(self):
+    def compile_model(self):
         loss = {
           'pitch': tf.keras.losses.SparseCategoricalCrossentropy(
               from_logits=True),
-          'step': self.mse_with_positive_pressure,
-          'duration': self.mse_with_positive_pressure,
+          'step': mse_with_positive_pressure,
+          'duration': mse_with_positive_pressure,
         }
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -40,4 +36,4 @@ class MIDIGeneratorModel(tf.keras.Model):
                 'duration':1.0,
             },
             optimizer=optimizer,
-        )   
+        )

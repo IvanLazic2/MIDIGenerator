@@ -229,7 +229,8 @@ def main(args):
 
     ckptr = ocp.AsyncCheckpointer(ocp.StandardCheckpointHandler())
     checkpoint_root = Path("checkpoints")
-    exp_root = checkpoint_root / f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    #exp_root = checkpoint_root / f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    exp_root = checkpoint_root / args.checkpoint_directory
     exp_root.mkdir(parents=True)
     logger.info(f"Saving checkpoints and config to {exp_root}")
 
@@ -423,13 +424,19 @@ if __name__ == "__main__":
         action="store_true",
         help="If present, track the experiment with wandb.",
     )
-
     parser.add_argument(
         "--dataset",
         type=str,
         default="dataset_tokenized",
         help="Directory containing the BPE tokenized MIDI files.",
     )
+    parser.add_argument(
+        "--checkpoint_directory",
+        type=str,
+        default=f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
+        help="Name of the directory to save checkpoints to.",
+    )
+
     args = parser.parse_args()
 
     main(args)

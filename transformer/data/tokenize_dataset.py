@@ -27,11 +27,8 @@ def main(args):
     no_bpe_out_dir = args.out_dir + "_no_bpe"
 
     tokenizer.tokenize_midi_dataset(midi_paths, no_bpe_out_dir, save_programs=False)
-
-    # TODO: add back data augmentation, currently crashes without it
-    # likely due to version mismatch
     # tokenizer.tokenize_midi_dataset(midi_paths, "tokenized_dataset_no_bpe", data_augment_offsets=data_augmentation_offsets, save_programs=False)
-
+    
     tokenizer.learn_bpe(
         vocab_size=args.vocab_size,
         tokens_paths=list(Path(no_bpe_out_dir).glob("**/*.json")),
