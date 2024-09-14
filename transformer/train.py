@@ -242,6 +242,9 @@ def main(args):
     run = wandb_init(args)
     num_steps = 0
 
+    losses = []
+    accuracies = []
+
     try:
         for ei in range(args.epochs):
             pb = tqdm.tqdm(train_loader)
@@ -277,8 +280,11 @@ def main(args):
                 total_val_accuracy += accuracy.item()
 
                 pb.set_description(
-                    f"[Epoch {ei+1}/{args.epochs}] VALIDATION | Loss: {total_val_loss / (i+1):.4f}, Accuracy: {100*total_val_accuracy / (i+1):.2f}"
+                    f"[Epoch {ei+1}/{args.epochs}] VALIDATION | Loss: {total_val_loss / (i + 1):.4f}, Accuracy: {100 * total_val_accuracy / (i + 1):.2f}"
                 )
+
+            losses.append(total_val_loss / (i + 1))
+            accuracies.append(100 * total_val_accuracy / (i + 1))
 
             wandb.log(
                 {
@@ -302,6 +308,22 @@ def main(args):
 
     logger.info("Training complete.. waiting for checkpointer to finish")
     ckptr.wait_until_finished()
+
+    # create a plot of the loss and accuracy and save as image
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(losses, label="Loss")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax2 = ax.twinx()
+    ax2.plot(accuracies, color="orange", label="Accuracy")
+    ax2.set_ylabel("Accuracy (%)")
+    fig.legend()
+    fig.savefig(exp_root / f"loss_plot_{args.checkpoint_directory}.png")
+
+
+
 
 
 if __name__ == "__main__":
