@@ -37,7 +37,6 @@ def generate_step(model, inputs, length, key, temperature):
     logits = jnp.take(logits, length - 1, axis=0)
 
     if temperature == 0.0:
-        # argmax sampling
         return jnp.argmax(logits, axis=-1)
 
     logits = logits / temperature
@@ -79,8 +78,6 @@ def generate_loop(
     )
     input_ids = np.pad(initial_input, ((0, input_length - sample_idx),))
 
-    # TODO: maybe replace with jax.lax.scan loop for faster generation
-    # https://stackoverflow.com/questions/77364000/convert-for-loop-to-jax-lax-scan
     for i in tqdm.trange(max_to_generate, desc="Generating"):
         key, subkey = jax.random.split(key)
         inputs = dict(input_ids=input_ids, position_ids=position_ids, mask=mask)
@@ -149,8 +146,6 @@ def main(args):
             "If you do not intend to use random weights, please specifiy --checkpoint when excecuting script."
         )
     else:
-        # this does not restore things like activation functions and such, so
-        # we need to use a tree map later to recover these details.
         logger.info(f"Loading model from '{Path(PurePath(args.checkpoint_directory).name) / args.checkpoint}'")
         checkpointer = ocp.Checkpointer(ocp.StandardCheckpointHandler())
         loaded_model = checkpointer.restore(
@@ -158,8 +153,6 @@ def main(args):
             item=eqx.filter([model], eqx.is_inexact_array),
         )[0]
 
-        # hack to deal with optax not serialising some equinox hyperparameters
-        # TODO: change to use eqx serialisation to avoid this.
         model = jax.tree_map(lambda x, y: x if (y is None) else y, model, loaded_model)
         del loaded_model
 
@@ -169,7 +162,7 @@ def main(args):
     logger.info(f"Model has {num_parameters:,} parameters.")
 
     if args.prompt_mode == "unconditional":
-        start_tokens = np.array([1], dtype=int)  # BOS token only
+        start_tokens = np.array([1], dtype=int)
     elif args.prompt_mode == "file":
         logger.info(f"Loading prompt file '{args.prompt_midi}'")
         midi = file_prompt(args.prompt_midi)

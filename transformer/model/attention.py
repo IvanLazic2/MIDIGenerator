@@ -1,4 +1,3 @@
-# copied from Equinox library to add softmax dtype
 import functools as ft
 import math
 import warnings
@@ -30,7 +29,7 @@ def dot_product_attention_weights(
             )
         logits = jnp.where(mask, logits, jnp.finfo(logits.dtype).min)
 
-    return jax.nn.softmax(logits, axis=-1)  # pyright: ignore
+    return jax.nn.softmax(logits, axis=-1)
 
 
 def dot_product_attention(
@@ -146,7 +145,7 @@ class MultiheadAttention(Module):
         use_output_bias: bool = False,
         dropout_p: float = 0.0,
         inference: bool = False,
-        dtype: jnp.dtype = jnp.float32,  # softmax is always fixed to f32
+        dtype: jnp.dtype = jnp.float32,
         *,
         key: PRNGKeyArray,
         **kwargs,
@@ -264,7 +263,6 @@ class MultiheadAttention(Module):
         kv_seq_length, _ = key_.shape
         kv_seq_length2, _ = value.shape
         if kv_seq_length != kv_seq_length2:
-            # query length can be different
             raise ValueError("key and value must both be sequences of equal length.")
 
         # query, key_, value = query.astype(self.dtype), key_.astype(self.dtype), value.astype(self.dtype)
@@ -281,12 +279,10 @@ class MultiheadAttention(Module):
         )
         keys = None if key is None else jax.random.split(key, query_heads.shape[1])
         if mask is not None and mask.ndim == 3:
-            # Batch `mask` and `keys` down their 0-th dimension.
             attn = jax.vmap(attn_fn, in_axes=1, out_axes=1)(
                 query_heads, key_heads, value_heads, mask=mask, key=keys
             )
         else:
-            # Batch `keys` down its 0-th dimension.
             attn = jax.vmap(ft.partial(attn_fn, mask=mask), in_axes=1, out_axes=1)(
                 query_heads, key_heads, value_heads, key=keys
             )

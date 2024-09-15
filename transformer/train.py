@@ -74,8 +74,6 @@ def create_train_step(model, optimiser):
     # @eqx.debug.assert_max_traces(max_traces=1)
     @eqx.filter_jit
     def train_step(model, opt_state, batch, key):
-        # TODO: some of these arguments are different between first and second step
-        # need to investigate to avoid a double compile.
         batch, labels, keys = prepare_batch(batch, key)
         (loss, _), grads = eqx.filter_value_and_grad(loss_fn, has_aux=True)(model, batch, labels, keys)
 
@@ -157,7 +155,6 @@ def main(args):
     logger.info(f"Model has {num_parameters:,} parameters.")
 
     if args.use_bf16:
-        # map all params to bf16
         logger.info("Training with bfloat16.")
         model = jax.tree_util.tree_map(lambda p: p.astype(jnp.bfloat16) if eqx.is_inexact_array(p) else p, model)
 
@@ -180,7 +177,7 @@ def main(args):
         drop_last=True,
     )
 
-    check that the dataloader is working
+    #check that the dataloader is working
     for i, batch in enumerate(train_loader):
         print(batch)
         if i > 5:
