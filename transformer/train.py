@@ -180,6 +180,14 @@ def main(args):
         drop_last=True,
     )
 
+    check that the dataloader is working
+    for i, batch in enumerate(train_loader):
+        print(batch)
+        if i > 5:
+            print("works")
+            break
+    
+
     val_loader = get_dataloader(
         val_dataset,
         batch_size=args.micro_batch_size,
@@ -282,7 +290,6 @@ def main(args):
             pb = tqdm.tqdm(val_loader)
             total_val_loss = 0.0
             total_val_accuracy = 0.0
-            j = 0
             for i, batch in enumerate(pb):
                 batch = {k: v.numpy() for k, v in batch.items()}
                 batch = jax.device_put(batch, sharding.reshape(num_devices, 1))
@@ -294,16 +301,15 @@ def main(args):
                 pb.set_description(
                     f"[Epoch {ei+1}/{args.epochs}] VALIDATION | Loss: {total_val_loss / (i + 1):.4f}, Accuracy: {100 * total_val_accuracy / (i + 1):.2f}"
                 )
-                j = i
 
-            losses.append(total_val_loss / (j + 1))
-            accuracies.append(100 * total_val_accuracy / (j + 1))
+            losses.append(total_val_loss / (i + 1))
+            accuracies.append(100 * total_val_accuracy / (i + 1))
 
             wandb.log(
                 {
                     "val": {
-                        "loss": total_val_loss / (j + 1),
-                        "accuracy": 100 * total_val_accuracy / (j + 1),
+                        "loss": total_val_loss / (i + 1),
+                        "accuracy": 100 * total_val_accuracy / (i + 1),
                     }
                 },
                 step=num_steps,
