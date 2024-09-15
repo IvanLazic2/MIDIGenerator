@@ -110,6 +110,16 @@ def setup_sharding(args):
     sharding = PositionalSharding(devices)
     return sharding, len(devices)
 
+def save_validation_graph(losses, accuracies):
+    fig, ax = plt.subplots()
+    ax.plot(losses, label="Loss")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax2 = ax.twinx()
+    ax2.plot(accuracies, color="orange", label="Accuracy")
+    ax2.set_ylabel("Accuracy (%)")
+    fig.legend()
+    fig.savefig(f"loss_plot_{args.checkpoint_directory}.png")
 
 PRINT_INTERVAL = 4
 
@@ -303,28 +313,15 @@ def main(args):
                 eqx.filter(model, eqx.is_inexact_array),
             )
     except BaseException as e:
+        save_validation_graph(losses, accuracies)
         logger.warning("Caught exception.. waiting for checkpointer to finish..")
         ckptr.wait_until_finished()
         raise e
 
-    logger.info("Training complete.. waiting for checkpointer to finish")
-    ckptr.wait_until_finished()
-
-    # create a plot of the loss and accuracy and save as image
-    fig, ax = plt.subplots()
-    ax.plot(losses, label="Loss")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Loss")
-    ax2 = ax.twinx()
-    ax2.plot(accuracies, color="orange", label="Accuracy")
-    ax2.set_ylabel("Accuracy (%)")
-    fig.legend()
-    fig.savefig(f"loss_plot_{args.checkpoint_directory}.png")
+    save_validation_graph(losses, accuracies)
 
     logger.info("Training complete.. waiting for checkpointer to finish")
     ckptr.wait_until_finished()
-
-
 
 
 
