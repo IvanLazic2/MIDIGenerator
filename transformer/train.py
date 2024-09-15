@@ -302,8 +302,8 @@ def main(args):
             wandb.log(
                 {
                     "val": {
-                        "loss": total_val_loss / (i + 1),
-                        "accuracy": 100 * total_val_accuracy / (i + 1),
+                        "loss": total_val_loss / (j + 1),
+                        "accuracy": 100 * total_val_accuracy / (j + 1),
                     }
                 },
                 step=num_steps,
