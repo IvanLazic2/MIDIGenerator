@@ -282,6 +282,7 @@ def main(args):
             pb = tqdm.tqdm(val_loader)
             total_val_loss = 0.0
             total_val_accuracy = 0.0
+            j = 0
             for i, batch in enumerate(pb):
                 batch = {k: v.numpy() for k, v in batch.items()}
                 batch = jax.device_put(batch, sharding.reshape(num_devices, 1))
@@ -293,9 +294,10 @@ def main(args):
                 pb.set_description(
                     f"[Epoch {ei+1}/{args.epochs}] VALIDATION | Loss: {total_val_loss / (i + 1):.4f}, Accuracy: {100 * total_val_accuracy / (i + 1):.2f}"
                 )
+                j = i
 
-            losses.append(total_val_loss / (i + 1))
-            accuracies.append(100 * total_val_accuracy / (i + 1))
+            losses.append(total_val_loss / (j + 1))
+            accuracies.append(100 * total_val_accuracy / (j + 1))
 
             wandb.log(
                 {
