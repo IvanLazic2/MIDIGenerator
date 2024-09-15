@@ -12,8 +12,6 @@ from utils import midi_to_notes, key_order, seq_length, vocab_size, data_dir
 
 from generate import main as generate
 
-
-
 def create_dataset():
     filenames = glob.glob(str(data_dir/'*.mid*'))
     if len(filenames) == 0:
@@ -41,23 +39,18 @@ def create_sequences(
     seq_length: int,
     vocab_size = 128,
 ) -> tf.data.Dataset:
-    """Returns TF Dataset of sequence and label examples."""
     seq_length = seq_length+1
 
-    # Take 1 extra for the labels
     windows = dataset.window(seq_length, shift=1, stride=1,
                                 drop_remainder=True)
 
-    # `flat_map` flattens the" dataset of datasets" into a dataset of tensors
     flatten = lambda x: x.batch(seq_length, drop_remainder=True)
     sequences = windows.flat_map(flatten)
-    
-    # Normalize note pitch
+
     def scale_pitch(x):
       x = x/[vocab_size,1.0,1.0]
       return x
 
-    # Split the labels
     def split_labels(sequences):
       inputs = sequences[:-1]
       labels_dense = sequences[-1]
@@ -95,13 +88,11 @@ def train(model, train_ds):
 def main():
     notes_ds, n_notes = create_dataset()
 
-    
-    
     seq_ds = create_sequences(notes_ds, seq_length, vocab_size)
     seq_ds.element_spec
 
     batch_size = 64
-    buffer_size = n_notes - seq_length  # the number of items in the dataset
+    buffer_size = n_notes - seq_length
     train_ds = (seq_ds
                 .shuffle(buffer_size)
                 .batch(batch_size, drop_remainder=True)
@@ -129,8 +120,6 @@ def main():
     model.save('model.keras')
 
     print('Training complete')
-
-    #generate(model)
 
 if __name__ == '__main__':
     main()

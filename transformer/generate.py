@@ -200,7 +200,7 @@ def main(args):
         output_dir = Path("generated_midis")
         output_dir.mkdir(exist_ok=True)
         checkpoint_name = Path(args.checkpoint_directory).stem
-        args.output_file = output_dir / f"{checkpoint_name} - {(datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".mid")}"
+        args.output_file = output_dir / f"{checkpoint_name} - {(datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.mid')}"
 
     logger.info(f"Saving generated MIDI to '{args.output_file}'")
     generated_midi.dump(args.output_file)

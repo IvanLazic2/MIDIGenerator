@@ -18,7 +18,6 @@ def predict_next_note(
 
     assert temperature > 0
 
-    # Add batch dimension
     inputs = tf.expand_dims(notes, 0)
 
     predictions = model.predict(inputs)
@@ -32,7 +31,6 @@ def predict_next_note(
     duration = tf.squeeze(duration, axis=-1)
     step = tf.squeeze(step, axis=-1)
 
-    # `step` and `duration` values should be non-negative
     step = tf.maximum(0, step)
     duration = tf.maximum(0, duration)
 
@@ -44,8 +42,6 @@ def generate(model, raw_notes):
 
     sample_notes = np.stack([raw_notes[key] for key in key_order], axis=1)
 
-    # The initial sequence of notes; pitch is normalized similar to training
-    # sequences
     input_notes = (
         sample_notes[:seq_length] / np.array([vocab_size, 1, 1]))
 
@@ -67,21 +63,12 @@ def generate(model, raw_notes):
 
 def main(model):
     if model is None:
-        #model = MIDIGeneratorModel()
-        #model.compile()
-        #model.load_weights('checkpoints/checkpoint_50.weights.h5')
-
         with custom_object_scope({'MIDIGeneratorModel': MIDIGeneratorModel}):
             model = keras.models.load_model('model.keras')
-        
-    #prompt_file = 'prompts/test1.mid'
-    #prompt_file_pm = pretty_midi.PrettyMIDI(prompt_file)
-    #raw_notes = midi_to_notes(prompt_file)
 
     filenames = glob.glob(str(data_dir/'*.mid*'))
 
     sample_file = filenames[1]
-    # save the sample file to midi file also
     sample_pm = pretty_midi.PrettyMIDI(sample_file)
     sample_out_file = f"current_sample_midi.mid"
     sample_pm.write(sample_out_file)

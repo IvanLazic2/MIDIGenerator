@@ -177,14 +177,6 @@ def main(args):
         drop_last=True,
     )
 
-    #check that the dataloader is working
-    for i, batch in enumerate(train_loader):
-        print(batch)
-        if i > 5:
-            print("works")
-            break
-    
-
     val_loader = get_dataloader(
         val_dataset,
         batch_size=args.micro_batch_size,
