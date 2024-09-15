@@ -5,6 +5,7 @@ import pretty_midi
 import numpy as np
 
 data_dir = pathlib.Path('/home/ivanubuntu/Projects/MIDIGenerator/datasets/Maestro v3/extracted_files_maestro_single')
+#data_dir = pathlib.Path('/home/ivanubuntu/Projects/MIDIGenerator/datasets/POP909-Dataset/extracted_files_pop909_single')
 key_order = ['pitch', 'step', 'duration']
 seq_length = 25
 vocab_size = 128

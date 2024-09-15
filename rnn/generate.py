@@ -14,7 +14,6 @@ def predict_next_note(
       notes: np.ndarray, 
       model: tf.keras.Model, 
       temperature: float = 1.0) -> tuple[int, float, float]:
-    """Generates a note as a tuple of (pitch, step, duration), using a trained sequence model."""
 
     assert temperature > 0
 
@@ -64,7 +63,7 @@ def generate(model, raw_notes):
 def main(model):
     if model is None:
         with custom_object_scope({'MIDIGeneratorModel': MIDIGeneratorModel}):
-            model = keras.models.load_model('model.keras')
+            model = keras.models.load_model('model_maestro-v3.keras')
 
     filenames = glob.glob(str(data_dir/'*.mid*'))
 

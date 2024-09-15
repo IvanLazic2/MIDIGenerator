@@ -1,11 +1,10 @@
 import datetime
 import glob
 import numpy as np
-
 import pandas as pd
 import tensorflow as tf
-
 from typing import Optional
+from matplotlib import pyplot as plt
 
 from model import MIDIGeneratorModel
 from utils import midi_to_notes, key_order, seq_length, vocab_size, data_dir
@@ -60,16 +59,19 @@ def create_sequences(
 
     return sequences.map(split_labels, num_parallel_calls=tf.data.AUTOTUNE)
 
+def save_validation_graph(loss, pitch_accuracy, step_mse, duration_mse):
+    fig, ax = plt.subplots()
+    ax.plot(loss, label="Loss")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax2 = ax.twinx()
+    ax2.plot(pitch_accuracy, color="orange", label="Accuracy")
+    ax2.set_ylabel("Accuracy (%)")
+    fig.legend()
+    fig.savefig(f"metrics.png")
 
-
-def train(model, train_ds):
-    checkpoint_dir = ''#datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    #pathlib.Path('./checkpoints/' + checkpoint_dir).mkdir(parents=True, exist_ok=True)
-
+def train(model, train_ds, validation_ds):
     callbacks = [
-        tf.keras.callbacks.ModelCheckpoint(
-            filepath='./checkpoints/' + checkpoint_dir + 'checkpoint_{epoch}.weights.h5',
-            save_weights_only=True),
         tf.keras.callbacks.EarlyStopping(
             monitor='loss',
             patience=5,
@@ -77,13 +79,18 @@ def train(model, train_ds):
             restore_best_weights=True),
     ]
 
-    epochs = 22
+    epochs = 20
 
     history = model.fit(
         train_ds,
         epochs=epochs,
         callbacks=callbacks,
+        validation_data=validation_ds,
     )
+
+    print("History keys:", history.history.keys())
+    #save_validation_graph(history.history['loss'], history.history['val_pitch_accuracy'], history.history['val_step_mse'], history.history['val_duration_mse'])
+    
 
 def main():
     notes_ds, n_notes = create_dataset()
@@ -93,11 +100,24 @@ def main():
 
     batch_size = 64
     buffer_size = n_notes - seq_length
+
+    seq_ds = seq_ds.shuffle(buffer_size)
+
+    train_size = int(0.9 * buffer_size)
+    val_size = buffer_size - train_size
+
     train_ds = (seq_ds
-                .shuffle(buffer_size)
+                .take(train_size)
                 .batch(batch_size, drop_remainder=True)
                 .cache()
                 .prefetch(tf.data.experimental.AUTOTUNE))
+
+    validation_ds = (seq_ds
+                     .skip(train_size)
+                     .take(val_size)
+                     .batch(batch_size, drop_remainder=True)
+                     .cache()
+                     .prefetch(tf.data.experimental.AUTOTUNE))
 
     input_shape = (seq_length, 3)
     inputs = tf.keras.Input(input_shape)
@@ -115,7 +135,7 @@ def main():
 
     model.evaluate(train_ds, return_dict=True)
 
-    train(model, train_ds)
+    train(model, train_ds, validation_ds)
 
     model.save('model.keras')
 

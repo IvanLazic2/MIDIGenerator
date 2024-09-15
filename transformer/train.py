@@ -95,14 +95,14 @@ def create_train_step(model, optimiser):
 
 def wandb_init(args):
     return wandb.init(
-        project="tchaikovsky",
+        project="MIDIGenerator",
         config=vars(args),
         mode=None if args.wandb else "disabled",
     )
 
 
 def setup_sharding(args):
-    print("ananan", jax.devices())
+    print("Devices:", jax.devices())
     devices = mesh_utils.create_device_mesh((len(jax.devices()),))
     logger.info(devices)
     sharding = PositionalSharding(devices)
@@ -120,7 +120,6 @@ def save_validation_graph(losses, accuracies):
     fig.savefig(f"loss_plot_{args.checkpoint_directory}.png")
 
 PRINT_INTERVAL = 4
-
 
 def main(args):
     logger.info("Beginning training script.")
@@ -311,7 +310,7 @@ def main(args):
             )
     except BaseException as e:
         save_validation_graph(losses, accuracies)
-        logger.warning("Caught exception.. waiting for checkpointer to finish..")
+        logger.warning("Exception.. waiting for checkpointer to finish")
         ckptr.wait_until_finished()
         raise e
 
@@ -335,13 +334,13 @@ if __name__ == "__main__":
         "--heads",
         type=int,
         default=8,
-        help="Number of attention heads in transformer model.",
+        help="Number of attention heads",
     )
     parser.add_argument(
         "--num_layers",
         type=int,
         default=8,
-        help="Number of layers in transformer model.",
+        help="Number of layers",
     )
     parser.add_argument(
         "--vocab_size",
@@ -354,7 +353,7 @@ if __name__ == "__main__":
         "--dropout",
         type=float,
         default=0.1,
-        help="Dropout probability in transformer model.",
+        help="Dropout probability",
     )
     parser.add_argument(
         "--use_lr_scheduler",
@@ -390,14 +389,14 @@ if __name__ == "__main__":
         "--batch_size",
         type=int,
         default=32, # 64
-        help="Effective batch size. Note, this is different to micro batch size which is the actual number of elements given to the model at once during training.",
+        help="Effective batch size.",
     )
 
     parser.add_argument(
         "--subset_proportion",
         type=float,
         default=1.0,
-        help="Specifies what subset of the full dataset to use for training / evaluation. Useful for debugging by using a smaller dataset.",
+        help="Specifies a subset of the full dataset. For debugging.",
     )
     parser.add_argument(
         "--val_proportion",
@@ -415,21 +414,21 @@ if __name__ == "__main__":
         "--min_sequence_length",
         type=int,
         default=128,
-        help="Minimum sequence length. Tokenized MIDI sequences shorter than this are dropped.",
+        help="Minimum sequence length.",
     )
     parser.add_argument(
         "--micro_batch_size",
         type=int,
         default=None,
-        help="Number of samples given to the model at once during training. batch_size / micro_batch_size determines the gradient accumulation factor.",
+        help="Number of samples given to the model at once during training.",
     )
 
-    parser.add_argument("--num_workers", type=int, default=12, help="Number of dataloader CPU workers.")
+    parser.add_argument("--num_workers", type=int, default=12, help="Number of dataloader CPU workers")
     parser.add_argument(
         "--epochs",
         type=int,
         default=5,
-        help="Number of epochs to train for. Implicitly sets number of steps in learning rate scheduler to be epochs*len(train_dataset) // batch_size",
+        help="Number of epochs",
     )
 
     parser.add_argument(
@@ -440,7 +439,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wandb",
         action="store_true",
-        help="If present, track the experiment with wandb.",
+        help="If present, track with wandb.",
     )
     parser.add_argument(
         "--dataset",

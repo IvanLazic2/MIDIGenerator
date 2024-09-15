@@ -1,6 +1,3 @@
-# copied from https://flax.readthedocs.io/en/latest/_modules/flax/linen/attention.html#make_causal_mask
-# mask-making utility functions
-
 from typing import Any, Callable
 
 import jax.numpy as jnp

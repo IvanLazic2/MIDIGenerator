@@ -31,9 +31,14 @@ class MIDIGeneratorModel(tf.keras.Model):
         super().compile(
             loss=loss,
             loss_weights={
-                'pitch': 0.05,
-                'step': 1.0,
-                'duration':1.0,
+            'pitch': 0.05,
+            'step': 1.0,
+            'duration': 1.0,
             },
             optimizer=optimizer,
+            metrics={
+                'pitch': tf.keras.metrics.SparseCategoricalAccuracy(name='accuracy'),
+                'step': tf.keras.metrics.MeanSquaredError(name='mse'),
+                'duration': tf.keras.metrics.MeanSquaredError(name='mse'),
+            }
         )
