@@ -1,4 +1,5 @@
 import os
+import matplotlib.pyplot as plt
 
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"]="false"
 #os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"]=".10"
@@ -310,8 +311,6 @@ def main(args):
     ckptr.wait_until_finished()
 
     # create a plot of the loss and accuracy and save as image
-    import matplotlib.pyplot as plt
-
     fig, ax = plt.subplots()
     ax.plot(losses, label="Loss")
     ax.set_xlabel("Epoch")
@@ -320,7 +319,10 @@ def main(args):
     ax2.plot(accuracies, color="orange", label="Accuracy")
     ax2.set_ylabel("Accuracy (%)")
     fig.legend()
-    fig.savefig(exp_root / f"loss_plot_{args.checkpoint_directory}.png")
+    fig.savefig(f"loss_plot_{args.checkpoint_directory}.png")
+
+    logger.info("Training complete.. waiting for checkpointer to finish")
+    ckptr.wait_until_finished()
 
 
 
